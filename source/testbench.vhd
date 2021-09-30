@@ -52,7 +52,7 @@ architecture structure of testbench is
         );
     end component memory2;
 
-    component acc
+    component acc_inv
         port(
             clk    : in  bit_t;
             reset  : in  bit_t;
@@ -104,7 +104,7 @@ begin
             clk  => clk
         );
 
-    Accelerator : acc
+    Accelerator : acc_inv
         port map(
             clk    => clk,
             reset  => reset,

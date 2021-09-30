@@ -24,7 +24,7 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 use work.types.all;
 
-entity acc is
+entity acc_real is
     port(
         clk    : in  bit_t;             -- The clock.
         reset  : in  bit_t;             -- The reset signal. Active high.
@@ -36,13 +36,13 @@ entity acc is
         start  : in  bit_t;
         finish : out bit_t
     );
-end acc;
+end acc_real;
 
 --------------------------------------------------------------------------------
 -- The desription of the accelerator.
 --------------------------------------------------------------------------------
 
-architecture rtl of acc is
+architecture rtl of acc_real is
 
 -- All internal signals are defined here
 
