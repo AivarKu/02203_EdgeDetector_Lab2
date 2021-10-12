@@ -23,10 +23,10 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use WORK.types.all;
 
-entity testbench is
-end testbench;
+entity testbench_inv is
+end testbench_inv;
 
-architecture structure of testbench is
+architecture structure of testbench_inv is
     component clock
         generic(
             period : time := 80 ns
