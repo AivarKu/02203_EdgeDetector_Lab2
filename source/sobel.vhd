@@ -35,29 +35,29 @@ use work.types.all;
 
 entity sobel is
   Port ( 
-    s11 : in unsigned(8 downto 0);
-    s12 : in unsigned(8 downto 0);
-    s13 : in unsigned(8 downto 0);
-    s21 : in unsigned(8 downto 0);
---    s22 : in unsigned(8 downto 0);
-    s23 : in unsigned(8 downto 0);
-    s31 : in unsigned(8 downto 0);
-    s32 : in unsigned(8 downto 0);
-    s33 : in unsigned(8 downto 0);
-    pix_out : out unsigned(8 downto 0)
+    s11 : in unsigned(7 downto 0);
+    s12 : in unsigned(7 downto 0);
+    s13 : in unsigned(7 downto 0);
+    s21 : in unsigned(7 downto 0);
+--    s22 : in unsigned(7 downto 0);
+    s23 : in unsigned(7 downto 0);
+    s31 : in unsigned(7 downto 0);
+    s32 : in unsigned(7 downto 0);
+    s33 : in unsigned(7 downto 0);
+    pix_out : out unsigned(7 downto 0)
   );
 end sobel;
 
 architecture Behavioral of sobel is
-    signal Gx_1: unsigned(10 downto 0);
-    signal Gx_2: unsigned(10 downto 0);
-    signal Gy_1: unsigned(10 downto 0);
-    signal Gy_2: unsigned(10 downto 0);
+    signal Gx_1: unsigned(9 downto 0);
+    signal Gx_2: unsigned(9 downto 0);
+    signal Gy_1: unsigned(9 downto 0);
+    signal Gy_2: unsigned(9 downto 0);
     
-    signal Gx: signed(11 downto 0);
-    signal Gy: signed(11 downto 0);
+    signal Gx: signed(10 downto 0);
+    signal Gy: signed(10 downto 0);
     
-    signal pix_out_full: signed(11 downto 0); 
+    signal pix_out_full: signed(10 downto 0); 
 
 begin
     Gx_1 <= ("00" & s11) + ('0' & s21 & '0') + ("00" & s31);
@@ -70,6 +70,6 @@ begin
     
     pix_out_full <= ABS(Gx) + ABS(Gy);
     
-    pix_out <= unsigned(pix_out_full(10 downto 2));
+    pix_out <= unsigned(pix_out_full(9 downto 2));
 
 end Behavioral;
