@@ -54,10 +54,10 @@ architecture Behavioral of sobel is
     signal Gy_1: unsigned(9 downto 0);
     signal Gy_2: unsigned(9 downto 0);
     
-    signal Gx: signed(10 downto 0);
-    signal Gy: signed(10 downto 0);
+    signal Gx: signed(11 downto 0);
+    signal Gy: signed(11 downto 0);
     
-    signal pix_out_full: signed(10 downto 0); 
+    signal pix_out_full: signed(11 downto 0); 
 
 begin
     Gx_1 <= ("00" & s11) + ('0' & s21 & '0') + ("00" & s31);
@@ -65,11 +65,11 @@ begin
     Gy_1 <= ("00" & s11) + ('0' & s12 & '0') + ("00" & s13);
     Gy_2 <= ("00" & s31) + ('0' & s32 & '0') + ("00" & s33);
     
-    Gx <= -signed('0' & Gx_1) + signed('0' & Gx_2);
-    Gy <= signed('0' & Gy_1) - signed('0' & Gy_2);
+    Gx <= -signed("00" & Gx_1) + signed("00" & Gx_2);
+    Gy <= signed("00" & Gy_1) - signed("00" & Gy_2);
     
     pix_out_full <= ABS(Gx) + ABS(Gy);
     
-    pix_out <= unsigned(pix_out_full(9 downto 2));
+    pix_out <= unsigned(pix_out_full(10 downto 3));
 
 end Behavioral;
