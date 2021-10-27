@@ -48,21 +48,24 @@ architecture rtl of acc_real is
     constant WORD_23_16_PIXEL_LOAD_POS  : integer := 351;
     constant WORD_31_24_PIXEL_LOAD_POS  : integer := 352;
 
-    type state_type is (WAIT_START, SHIFT_ROWS, FETCH_DATA, READ_ROW, WRITE, DO_EDGES, WRITE_LAST_ROW, STOP); -- Input your own state names
+    type state_type is (WAIT_START, FIRST_FETCH, FIRST_READ, FIRST_SHIFT, SECOND_FETCH, SECOND_READ, FIRST_DO_EDGES,
+    SHIFT_ROWS, FETCH_DATA, READ_ROW, WRITE, DO_EDGES, LAST_DO_EDGES, WRITE_LAST_ROW, STOP);
     signal state, next_state : state_type;
 
     signal addr_cnt         : unsigned(15 downto 0);
     signal addr_read_offset : unsigned(15 downto 0);
     signal addr_write_offset: unsigned(15 downto 0);
     signal addr_cnt_done    : std_logic;
-    signal read_row_cnt     : integer range 0 to 287;
+    signal read_row_cnt     : integer range 0 to 288;
     
     signal addr_cnt_ena     : std_logic;
     signal loadDataToRow0   : std_logic;
     signal shiftAllRowsUp   : std_logic;
     signal shiftAllRowsLeft : std_logic;
     signal shiftAllRowsLeftHalf : std_logic;
+    signal first_fill_edges : std_logic;
     signal fill_edges       : std_logic;
+    signal last_fill_edges  : std_logic;
     
     type pixel_row_type is array (0 to 353) of unsigned(7 downto 0); -- Row is two pixels wider than image to enable edge handling
     signal pixel_row_0 : pixel_row_type;
@@ -230,35 +233,36 @@ begin
                     pixel_row_0(353-0) <= pixel_row_0(1-0);
                     pixel_row_0(353-1) <= pixel_row_0(1-1);
                     
-                elsif fill_edges = '1' then -- Handle edges
-                    if read_row_cnt = 2 then -- First row
-                        pixel_row_2(0)              <= pixel_row_1(1);
-                        pixel_row_2(1 downto 353)   <= pixel_row_1(1 downto 353);
-                        pixel_row_2(353)            <= pixel_row_1(352);
-                        pixel_row_1(0)              <= pixel_row_1(1);
-                        pixel_row_1(353)            <= pixel_row_1(352);
-                        pixel_row_0(0)              <= pixel_row_0(1);
-                        pixel_row_0(353)            <= pixel_row_0(352);
-                     
-                    elsif read_row_cnt = 88 then -- Last row
-                        pixel_row_2(0)              <= pixel_row_1(1);      
-                        pixel_row_2(353)            <= pixel_row_1(352);
-                        pixel_row_1(0)              <= pixel_row_1(1);
-                        pixel_row_1(353)            <= pixel_row_1(352);
-                        pixel_row_0(0)              <= pixel_row_1(1);
-                        pixel_row_0(1 downto 353)   <= pixel_row_1(1 downto 353);
-                        pixel_row_0(353)            <= pixel_row_1(352);
+                elsif first_fill_edges = '1' then
+                    pixel_row_2(0)              <= pixel_row_1(1);
+                    for i in 1 to 353 loop
+                        pixel_row_2(i) <= pixel_row_1(i);
+                    end loop;
+                    pixel_row_2(353)            <= pixel_row_1(352);
+                    pixel_row_1(0)              <= pixel_row_1(1);
+                    pixel_row_1(353)            <= pixel_row_1(352);
+                    pixel_row_0(0)              <= pixel_row_0(1);
+                    pixel_row_0(353)            <= pixel_row_0(352);
                     
-                    else -- All other rows
-                        pixel_row_2(0)              <= pixel_row_1(1);      
-                        pixel_row_2(353)            <= pixel_row_1(352);
-                        pixel_row_1(0)              <= pixel_row_1(1);
-                        pixel_row_1(353)            <= pixel_row_1(352);
-                        pixel_row_0(0)              <= pixel_row_1(1);
-                        pixel_row_0(0)              <= pixel_row_0(1);
-                        pixel_row_0(353)            <= pixel_row_0(352);
+                elsif fill_edges = '1' then -- All other rows
+                    pixel_row_2(0)              <= pixel_row_2(1);      
+                    pixel_row_2(353)            <= pixel_row_2(352);
+                    pixel_row_1(0)              <= pixel_row_1(1);
+                    pixel_row_1(353)            <= pixel_row_1(352);
+                    pixel_row_0(0)              <= pixel_row_0(1);
+                    pixel_row_0(353)            <= pixel_row_0(352);
+
+                elsif last_fill_edges = '1' then
+                    pixel_row_2(0)              <= pixel_row_2(1);      
+                    pixel_row_2(353)            <= pixel_row_2(352);
+                    pixel_row_1(0)              <= pixel_row_1(1);
+                    pixel_row_1(353)            <= pixel_row_1(352);
+                    pixel_row_0(0)              <= pixel_row_1(1);
+                    for i in 1 to 353 loop
+                        pixel_row_0(i) <= pixel_row_1(i);
+                    end loop;
+                    pixel_row_0(353)            <= pixel_row_1(352);
                     
-                    end if;
                 end if;
             end if;
         end if;
@@ -278,35 +282,69 @@ begin
         shiftAllRowsUp <= '0';
         shiftAllRowsLeft <= '0';
         shiftAllRowsLeftHalf <= '0';
+        first_fill_edges <= '0';
         fill_edges <= '0';
+        last_fill_edges <= '0';
     
         case (state) is    
             when WAIT_START =>
                 en <= '0';
                 if start = '1' then
-                    next_state  <= SHIFT_ROWS;
+                    next_state  <= FIRST_FETCH;
                 end if;  
+                
+            when FIRST_FETCH =>
+                addr_cnt_ena <= '1';
+                next_state  <= FIRST_READ;
+                
+            when FIRST_READ =>
+                loadDataToRow0 <= '1';
+                addr_cnt_ena <= '1';
+                if addr_cnt_done = '1' then
+                    next_state  <= FIRST_SHIFT;
+                else
+                    next_state  <= FIRST_READ;
+                end if; 
+                
+            when FIRST_SHIFT =>
+                shiftAllRowsUp <= '1';
+                next_state  <= SECOND_FETCH;
+                
+            when SECOND_FETCH =>
+                addr_cnt_ena <= '1';
+                next_state  <= SECOND_READ;
+                
+            when SECOND_READ =>
+                loadDataToRow0 <= '1';
+                addr_cnt_ena <= '1';
+                if addr_cnt_done = '1' then
+                    next_state  <= FIRST_DO_EDGES;
+                else
+                    next_state  <= SECOND_READ;
+                end if; 
+                
+            when FIRST_DO_EDGES =>
+                 first_fill_edges <= '1';
+                 next_state  <= WRITE;
                 
             when SHIFT_ROWS =>
                 shiftAllRowsUp <= '1';
                 if read_row_cnt >= 288 then
-                    next_state  <= WRITE_LAST_ROW;
+                    next_state  <= LAST_DO_EDGES;
                 else 
                     next_state  <= FETCH_DATA;
                 end if;
                 
             when FETCH_DATA =>
                 addr_cnt_ena <= '1';
-                if start = '1' then
-                    next_state  <= READ_ROW;
-                end if;  
+                next_state  <= READ_ROW;
                      
             when READ_ROW =>
                 loadDataToRow0 <= '1';
                 addr_cnt_ena <= '1';
                 if addr_cnt_done = '1' then
                     if read_row_cnt >= 2 then
-                        next_state  <= WRITE;
+                        next_state  <= DO_EDGES;
                     else
                         next_state  <= SHIFT_ROWS;
                     end if;
@@ -334,6 +372,10 @@ begin
                 else
                     next_state  <= WRITE;
                 end if;  
+                
+            when LAST_DO_EDGES =>
+                 last_fill_edges <= '1';
+                 next_state  <= WRITE_LAST_ROW;
                 
             when WRITE_LAST_ROW =>
                 we <= '1';
