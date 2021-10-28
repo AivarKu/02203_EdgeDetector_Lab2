@@ -41,7 +41,7 @@ end acc_real;
 -- Image is 288*352 pixels
 
 architecture rtl of acc_real is
-
+    
     constant ram_wr_offset              : integer := 25344;
     constant WORD_7_0_PIXEL_LOAD_POS    : integer := 349;
     constant WORD_15_8_PIXEL_LOAD_POS   : integer := 350;
@@ -96,7 +96,14 @@ architecture rtl of acc_real is
     );
     end component;
 
-
+    attribute mark_debug : string;
+    attribute mark_debug of start : signal is "true";
+    attribute mark_debug of finish : signal is "true";
+    attribute mark_debug of en : signal is "true";
+    attribute mark_debug of we : signal is "true";
+    attribute mark_debug of state : signal is "true";
+    attribute mark_debug of next_state : signal is "true";
+    
 begin
 
 
@@ -396,8 +403,11 @@ begin
                 
             when STOP =>
                 finish <= '1';
-                next_state  <= WAIT_START;
-            
+                if start = '1' then
+                    next_state  <= STOP;
+                else
+                    next_state  <= WAIT_START;
+                end if; 
             when others =>
                 next_state <= WAIT_START;
         
