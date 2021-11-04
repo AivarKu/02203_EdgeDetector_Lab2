@@ -110,7 +110,7 @@ begin
     address_cnt : process(clk)
     begin
         if rising_edge(clk) then
-            if reset = '1' then
+            if reset = '1' or state = WAIT_START then
                 addr_cnt <= (others => '0');
                 addr_read_offset <= (others => '0');
                 addr_write_offset <= (others => '0');
@@ -184,7 +184,7 @@ begin
     ring_shft: process(clk)
     begin
         if rising_edge(clk) then
-            if reset = '1' then
+            if reset = '1' or state = WAIT_START then
                 pixel_row_0 <= (others => (others => '0'));
                 pixel_row_1 <= (others => (others => '0'));
                 pixel_row_2 <= (others => (others => '0'));
