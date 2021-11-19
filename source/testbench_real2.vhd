@@ -23,10 +23,10 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use WORK.types.all;
 
-entity testbench_real is
-end testbench_real;
+entity testbench_real2 is
+end testbench_real2;
 
-architecture structure of testbench_real is
+architecture structure of testbench_real2 is
     component clock
         generic(
             period : time := 80 ns
@@ -52,7 +52,7 @@ architecture structure of testbench_real is
         );
     end component memory2;
 
-    component acc_real
+    component acc_real2
         port(
             clk    : in  bit_t;
             reset  : in  bit_t;
@@ -104,7 +104,7 @@ begin
             clk  => clk
         );
 
-    Accelerator : acc_real
+    Accelerator : acc_real2
         port map(
             clk    => clk,
             reset  => reset,
@@ -119,7 +119,7 @@ begin
 
     Memory : memory2
         generic map(
-            load_file_name => "../illusion.pgm"
+            load_file_name => "../pic1.pgm"
         )
         -- Result is saved to: load_file_name & "_result.pgm"
         port map(

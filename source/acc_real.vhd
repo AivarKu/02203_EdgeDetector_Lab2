@@ -2,14 +2,14 @@
 --
 --  Title      :  Edge-Detection design project - task 2.
 --             :
---  Developers :  YOUR NAME HERE - s??????@student.dtu.dk
---             :  YOUR NAME HERE - s??????@student.dtu.dk
+--  Developers :  Pawel Tomasz Pieta - s202606@student.dtu.dk
+--             :  Aivar Külle - s202963@student.dtu.dk
 --             :
 --  Purpose    :  This design contains an entity for the accelerator that must be build
 --             :  in task two of the Edge Detection design project. It contains an
 --             :  architecture skeleton for the entity as well.
 --             :
---  Revision   :  1.0   ??-??-??     Final version
+--  Revision   :  1.0   04-11-2021    Final version
 --             :
 --
 -- -----------------------------------------------------------------------------
@@ -95,14 +95,6 @@ architecture rtl of acc_real is
         pix_out : out unsigned(7 downto 0)
     );
     end component;
-
-    attribute mark_debug : string;
-    attribute mark_debug of start : signal is "true";
-    attribute mark_debug of finish : signal is "true";
-    attribute mark_debug of en : signal is "true";
-    attribute mark_debug of we : signal is "true";
-    attribute mark_debug of state : signal is "true";
-    attribute mark_debug of next_state : signal is "true";
     
 begin
 
@@ -173,11 +165,6 @@ begin
     pixelOut1 <= std_logic_vector(pixelsOut(1));
     pixelOut2 <= std_logic_vector(pixelsOut(2));
     pixelOut3 <= std_logic_vector(pixelsOut(3));
-    
---    pixelOut0 <= std_logic_vector(pixel_row_1(1));
---    pixelOut1 <= std_logic_vector(pixel_row_1(2));
---    pixelOut2 <= std_logic_vector(pixel_row_1(3));
---    pixelOut3 <= std_logic_vector(pixel_row_1(4));
             
          
     -- Pixel ring shift registers
