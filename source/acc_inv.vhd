@@ -37,7 +37,6 @@ entity acc_inv is
         finish : out bit_t
     );
 end acc_inv;
-
     
 
 architecture rtl of acc_inv is
@@ -57,7 +56,6 @@ architecture rtl of acc_inv is
     signal pixel3 : unsigned(7 downto 0);
 
 begin
-
 
     myprocess : process(clk)
     begin
@@ -86,8 +84,7 @@ begin
     pixel2 <= 255-unsigned(dataR(23 downto 16));
     pixel3 <= 255-unsigned(dataR(31 downto 24));
     
-    
-    -- Combinatoriel logic
+    -- Combinatorial logic
     cl : process (all)
     begin
         next_state  <= WAIT_START;
@@ -105,23 +102,27 @@ begin
              
             when READ =>
                 en <= '1';
-                next_state  <= WRITE;
-      
+                if addr_cnt_done = '1' then
+                    next_state  <= WAIT_START;
+                    en <= '0';
+                    finish <= '1';
+                else
+                    next_state  <= WRITE;
+                end if;  
+                
             when WRITE =>
                 en <= '1';
                 we <= '1';
                 addr_cnt_ena <= '1';
                 dataW <= std_logic_vector( pixel3 & pixel2 & pixel1 & pixel0);
-                if addr_cnt_done = '1' then
-                    next_state  <= STOP;
+                next_state  <= READ;
+                                    
+            when STOP =>
+                if start = '0' then
+                    next_state  <= WAIT_START;
                 else
-                    next_state  <= READ;
-                end if;        
-                
-             when STOP =>
-                en <= '0';
-                finish <= '1';
-                next_state  <= WAIT_START;
+                    next_state  <= STOP;
+                end if;  
             
             when others =>
                 next_state <= WAIT_START;
@@ -140,6 +141,5 @@ begin
             end if;
         end if;
     end process seq;
-
 
 end rtl;
